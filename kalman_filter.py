@@ -55,6 +55,18 @@ impact_3_11 = pd.to_datetime([
   "2025-03-11 22:22:42.000000000+00:00"
   "2025-03-11 22:22:44.000000000+00:00"
 ])
+
+impact_4_22 = pd.to_datetime([
+  "2025-04-22 23:32:10.596000+00:00"
+  "2025-04-22 23:32:12.098000+00:00"
+  "2025-04-22 23:32:13.760000+00:00"
+  "2025-04-22 23:32:15.341000+00:00"
+  "2025-04-22 23:32:16.922000+00:00"
+  "2025-04-22 23:32:17.650000+00:00"
+  "2025-04-22 23:32:17.650000+00:00"
+  "2025-04-22 23:32:17.650000+00:00"
+  "2025-04-22 23:32:17.650000+00:00"
+  "2025-04-22 23:32:17.650000+00:00"])
 impact_times = []
 
 data = ["3-2", "3-11"]
@@ -82,26 +94,26 @@ def group_impacts(times, window=0.15):
       grouped.append(t)
   return grouped
 
-for dataset in data:
-  df = pd.read_csv(f'data/raw/{dataset}.csv')
-# for pos in positions:
-#   df = pd.read_csv(f'data/raw/{pos}.csv')
+# for dataset in data:
+#   df = pd.read_csv(f'data/raw/{dataset}.csv')
+for pos in positions:
+  df = pd.read_csv(f'data/raw/{pos}.csv')
 
   df['isoTimestamp'] = pd.to_datetime(df['isoTimestamp'])
   df = df.sort_values(by='isoTimestamp')
-  # df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-02-21').date()]
+  df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-02-21').date()]
 
-  # if pos == 'back' or pos == 'side':
-  #   impact_times = impacts_back_side 
-  # else:
-  #   impact_times = impact_neck
-
-  if dataset == "3-2":
-    df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-03-03').date()]
-    impact_times = impact_3_2
+  if pos == 'back' or pos == 'side':
+    impact_times = impacts_back_side 
   else:
-    df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-03-11').date()]
-    impact_times = impact_3_11
+    impact_times = impact_neck
+
+  # if dataset == "3-2":
+  #   df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-03-03').date()]
+  #   impact_times = impact_3_2
+  # else:
+  #   df = df[df['isoTimestamp'].dt.date == pd.to_datetime('2025-03-11').date()]
+  #   impact_times = impact_3_11
   
   start_time = impact_times.min() - pd.Timedelta(seconds=1)
   end_time = impact_times.max() + pd.Timedelta(seconds=1)
@@ -164,17 +176,17 @@ for dataset in data:
   # use rolling window to detect sustained spikes
   rolling_avg = pd.Series(mahalanobis_dist).rolling(window=3, center=True).mean()
   rolling_avg.index = df.index
-  impact_threshold = rolling_avg.mean() + 3 * rolling_avg.std()
+  impact_threshold = rolling_avg.mean() + 2 * rolling_avg.std()
   potential_impacts = (rolling_avg > impact_threshold)
   true_impacts = []
-  # if pos == 'back' or pos == 'side':
-  #   true_impacts = impacts_back_side
-  # else:
-  #   true_impacts = impact_neck
-  if dataset == "3-2":
-    true_impacts = impact_3_2
+  if pos == 'back' or pos == 'side':
+    true_impacts = impacts_back_side
   else:
-    true_impacts = impact_3_11
+    true_impacts = impact_neck
+  # if dataset == "3-2":
+  #   true_impacts = impact_3_2
+  # else:
+  #   true_impacts = impact_3_11
 
   df['true_impact'] = timestamps.apply(
     lambda t: any(abs((t - impact).total_seconds()) <= 0.1 for impact in true_impacts)
@@ -193,8 +205,8 @@ for dataset in data:
       grouped_pred_times, true_times, tolerance=0.15)
   
   results.append({
-      # 'position': pos,
-      'dataset': dataset,
+      'position': pos,
+      # 'dataset': dataset,
       'true_positives': true_positives,
       'false_positives': false_positives,
       'false_negatives': false_negatives

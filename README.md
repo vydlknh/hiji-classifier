@@ -18,6 +18,7 @@ We want to predict header impacts based on collected data
 ### Preprocessing
 
 - preprocessing.py takes in all data files and creates a final, preprocessed file that contains one second intervals, each with an impact flag
+- extract_timestamps takes header videos, extract frames by milliseconds, and convert to isotimestamps
 
 ### Tools
 
@@ -31,5 +32,4 @@ We want to predict header impacts based on collected data
 - f-test performs linear regression
 - model_comparision compares multiple models
 - xgb, log_reg, and decision_gradient attempt to optimize and evaluate models
-
-
+- kalman_filter uses Kalman filter and Mahalanobis distance to detect sudden movement changes
